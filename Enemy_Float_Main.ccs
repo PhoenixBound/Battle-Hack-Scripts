@@ -193,7 +193,9 @@ New_Y_Pos:{
 	BRA_a (Continue)
 	
 Two_Compliment_This:
-	JSL (Twos_Compliment_8_Bit)
+	EOR_i (0x00FF)
+	INC
+	AND_i (0x00FF)
 	
 Continue:
 	JSL (Sine)
@@ -264,73 +266,3 @@ Sine:{
 }
 
 
-/*------------------------------
-	This makes negative numbers into positive numbers. Basically, it's an absolute value function
-	
-Parameters:
-	A: The negaive number (in 8-bits)
-Returns:
-	A: The positive number of that negative number (in 16-bits)
-*/
-Twos_Compliment_8_Bit:{
-	REP (0x31)
-	PHD
-	PHA
-	TDC
-	ADC_i (0xFFEE)
-	TCD
-	PLA
-	
-	AND_i (0x00FF)	// Get low byte
-	STA_d (0x06)	// DPR 0x06 = Negative number (potentially)
-	
-	CMP_i (0x0080)
-	BCS_a (Continue)// If the number >= 0x80, then it's a signed negative
-	BRA_a (Return)	// Else, return
-	
-Continue:
-	STA_d (0x02)	// DPR 0x02 = Negative number
-	LDA_i (0x01)
-	STA_d (0x04)	// DPR 0x04 = Bit position in number
-	STZ_d (0x06)	// DPR 0x06 = Result of the Not
-	STZ_d (0x08)	// Counter
-	
-Not_Loop:
-	LDA_d (0x08)
-	CMP_i (0x08)
-	BCS_a (Return_From_Loop)
-
-	LDA_d (0x02)
-	AND_d (0x04)
-	CMP_i (0x00)
-	BNE_a (Add_0)	// If bit position in negaive number isn't 0, branch
-	LDA_i (0x01)	// Else, Load 1
-	BRA_a (Not_Loop_2)
-	
-Add_0:
-	LDA_i (0x00)	// Load 0
-	
-Not_Loop_2:
-	LDY_d (0x04)	// Load bit position
-	JSL (Mult_YxA) 	// Mult bit position by 1 or 0
-	CLC
-	ADC_d (0x06)	// Add not result to bit position
-	STA_d (0x06)	// Store not result into bit
-	
-	LDA_d (0x04)	// Load bit poisition
-	ASL
-	STA_d (0x04)	// Shift left by 1
-	
-	INC_d (0x08)	// Increment Counter
-	BRA_a (Not_Loop)
-	
-Return_From_Loop:
-	LDA_d (0x06)
-	INC
-	STA_d (0x06)
-	
-Return:
-	LDA_d (0x06)	// Load 2's compliment number
-	PLD
-	RTL
-}
