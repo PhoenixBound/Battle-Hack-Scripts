@@ -1,7 +1,6 @@
 import asm65816
 import asmref
 import Enemy_Float_Enemy_ID_Table
-import Enemy_Refresh
 
 /*
         This script's purpose is to add any additional stats to an enemy before
@@ -27,7 +26,6 @@ ROM[0xC2B92C] = {
 Add_More_Enemy_Settings:{
         // Add your jumper code in here
         JSL (Check_Float_Status)
-        JSL (Check_Refresh)
         // But not after here
 Return:
         REP (0x20)
